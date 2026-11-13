@@ -118,10 +118,12 @@ const sendOTPEmail = async ({ email: rawEmail, toEmail, otp, purpose, metadata =
       recipient: maskEmail(recipient)
     };
   } catch (error) {
-    // If primary port 465 failed (timeout, network error, or blocked port), attempt port 587 fallback
-    console.warn(`⚠️ Primary SMTP connection issue (${error.code || error.message}), attempting port 587 fallback...`);
+    // If primary port failed (timeout, network error, or blocked cloud port), attempt alternate port fallback
+    const currentPort = Number(process.env.SMTP_PORT) || 587;
+    const fallbackPort = currentPort === 587 ? 465 : 587;
+    console.warn(`⚠️ Primary SMTP connection issue (${error.code || error.message}), attempting port ${fallbackPort} fallback...`);
     try {
-      const fallbackTransporter = createTransporter(587);
+      const fallbackTransporter = createTransporter(fallbackPort);
       const fbInfo = await fallbackTransporter.sendMail({
         from: fromAddress,
         to: recipient,
@@ -195,9 +197,11 @@ const sendTestEmail = async (targetEmail) => {
       messageId: info.messageId
     };
   } catch (error) {
-    console.warn(`⚠️ Primary SMTP test failed (${error.code || error.message}), trying port 587 fallback...`);
+    const currentPort = Number(process.env.SMTP_PORT) || 587;
+    const fallbackPort = currentPort === 587 ? 465 : 587;
+    console.warn(`⚠️ Primary SMTP test failed (${error.code || error.message}), trying port ${fallbackPort} fallback...`);
     try {
-      const fallbackTransporter = createTransporter(587);
+      const fallbackTransporter = createTransporter(fallbackPort);
       const fbInfo = await fallbackTransporter.sendMail({
         from: fromAddress,
         to: recipient,

@@ -311,6 +311,15 @@ const getHealthStatus = () => {
     };
 };
 
+app.get(['/', '/api'], (req, res) => {
+    res.json({
+        status: 'ok',
+        service: 'Connect App Backoffice API',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.get('/api/health', (req, res) => {
     res.json(getHealthStatus());
 });
@@ -850,7 +859,7 @@ const startServer = async () => {
             }
         }
         const { verifyTransporter } = require('./config/mailer');
-        await verifyTransporter();
+        verifyTransporter().catch(e => console.warn('[SMTP Boot Note]:', e.message));
     } catch (err) {
         console.error('FATAL: Admin backend database connection failed during startup:', err.message); process.exit(1);
     }
