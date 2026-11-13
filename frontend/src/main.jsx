@@ -199,6 +199,8 @@ if (typeof window !== 'undefined' && window.fetch) {
       url = input.url || '';
     }
 
+    let primaryInput = input;
+
     // Automatically redirect any dead api.ficapp.in or 3.110.88.42 requests to authoritative Render backend
     if (typeof url === 'string' && (url.includes('api.ficapp.in') || url.includes('3.110.88.42'))) {
       const redirectedUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
