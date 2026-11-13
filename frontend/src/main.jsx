@@ -199,8 +199,20 @@ if (typeof window !== 'undefined' && window.fetch) {
       url = input.url || '';
     }
 
+    // Automatically redirect any dead api.ficapp.in or 3.110.88.42 requests to authoritative Render backend
+    if (typeof url === 'string' && (url.includes('api.ficapp.in') || url.includes('3.110.88.42'))) {
+      const redirectedUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
+      if (typeof input === 'string') {
+        primaryInput = redirectedUrl;
+      } else if (input instanceof URL) {
+        primaryInput = new URL(redirectedUrl);
+      } else if (typeof Request !== 'undefined' && input instanceof Request) {
+        primaryInput = new Request(redirectedUrl, input);
+      }
+      url = redirectedUrl;
+    }
+
     // Clean redundant duplicate /admin-api/admin-api/ if present
-    let primaryInput = input;
     if (typeof url === 'string' && url.includes('/admin-api/admin-api/')) {
       const cleanedUrl = url.replace('/admin-api/admin-api/', '/admin-api/');
       if (typeof input === 'string') {
@@ -224,9 +236,23 @@ if (typeof window !== 'undefined' && window.fetch) {
 
       // 502/503/504 Bad Gateway Auto-Recovery:
       // If Vercel edge rewrite proxy returns 502 Bad Gateway or Gateway Timeout,
-      // transparently retry the same-origin request up to 2 times with progressive backoff (recovers from proxy cold-start / reload).
-      // Keep strictly same-origin to prevent browser CORS preflight violations.
+      // transparently failover directly to authoritative Render backend https://admin-09w3.onrender.com
       if (response && (response.status === 502 || response.status === 503 || response.status === 504) && typeof url === 'string') {
+        if (url.startsWith('/admin-api/') || url.startsWith('/api/') || url.includes('.vercel.app/')) {
+          try {
+            const directTarget = url.includes('/admin-api/')
+              ? `https://admin-09w3.onrender.com/admin-api/${url.split('/admin-api/')[1]}`
+              : `https://admin-09w3.onrender.com/api/${url.split('/api/')[1]}`;
+            let directInput = directTarget;
+            if (typeof Request !== 'undefined' && input instanceof Request) {
+              directInput = new Request(directTarget, input);
+            }
+            const directRes = await _origFetch.call(this, directInput, init);
+            if (directRes && directRes.status !== 502 && directRes.status !== 503 && directRes.status !== 504) {
+              return directRes;
+            }
+          } catch (_) {}
+        }
         for (let rAttempt = 0; rAttempt < 2; rAttempt++) {
           try {
             await new Promise(r => setTimeout(r, 750 * (rAttempt + 1)));

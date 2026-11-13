@@ -67,9 +67,11 @@ class DataSyncManager {
         base = `${window.location.origin}/admin-api`;
       }
     }
-    if (!base) base = 'https://admin-09w3.onrender.com/admin-api';
+    if (!base || base.includes('api.ficapp.in') || base.includes('3.110.88.42')) {
+      base = 'https://admin-09w3.onrender.com/admin-api';
+    }
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    if (isHttps && (base.startsWith('http://3.110.88.42') || base.startsWith('http://api.ficapp.in') || base.startsWith('http://admin-09w3.onrender.com') || base.startsWith('http://'))) {
+    if (isHttps && (base.includes('3.110.88.42') || base.includes('api.ficapp.in') || base.startsWith('http://admin-09w3.onrender.com') || base.startsWith('http://'))) {
       base = 'https://admin-09w3.onrender.com/admin-api';
     }
     if (base.endsWith('/api')) {
@@ -77,8 +79,8 @@ class DataSyncManager {
     }
 
     let fullUrl = url;
-    if (url.startsWith('http://3.110.88.42:8004') || url.startsWith('http://3.110.88.42')) {
-      fullUrl = url.replace(/http:\/\/3\.110\.88\.42(:8004)?/, base);
+    if (url.includes('api.ficapp.in') || url.includes('3.110.88.42')) {
+      fullUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
     } else if (url.startsWith('/admin-api/')) {
       fullUrl = `${base.replace(/\/admin-api$/, '')}${url}`;
     } else if (url.startsWith('/api/')) {

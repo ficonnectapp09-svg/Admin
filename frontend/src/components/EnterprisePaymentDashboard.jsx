@@ -269,7 +269,7 @@ export const EnterprisePaymentDashboard = React.memo(({ token, API_BASE, current
           serverUrl = API_BASE.replace(/\/admin-api\/?$/, '').replace(/\/api\/?$/, '');
         }
       }
-      if (!serverUrl) serverUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? window.location.origin : 'https://admin-09w3.onrender.com';
+      if (!serverUrl || serverUrl.includes('api.ficapp.in')) serverUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? window.location.origin : 'https://admin-09w3.onrender.com';
 
       const activeToken = token || (typeof localStorage !== 'undefined' ? (localStorage.getItem('token') || localStorage.getItem('admin_token') || '') : '');
       const isRemoteServer = serverUrl.includes('admin-09w3.onrender.com') || serverUrl.includes('api.ficapp.in') || (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app'));

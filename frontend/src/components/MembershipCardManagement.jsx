@@ -96,7 +96,7 @@ export const MembershipCardManagement = React.memo(({ token, API_BASE }) => {
           serverUrl = API_BASE.replace(/\/admin-api\/?$/, '').replace(/\/api\/?$/, '');
         }
       }
-      if (!serverUrl) serverUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? window.location.origin : 'https://admin-09w3.onrender.com';
+      if (!serverUrl || serverUrl.includes('api.ficapp.in')) serverUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? window.location.origin : 'https://admin-09w3.onrender.com';
 
       const activeToken = token || (typeof localStorage !== 'undefined' ? (localStorage.getItem('token') || localStorage.getItem('admin_token') || '') : '');
 

@@ -124,25 +124,27 @@ const resolveSanitizedApiBase = () => {
     // On Vercel deployments, connect directly to production backend https://admin-09w3.onrender.com/admin-api
     // This completely eliminates Vercel edge proxy 502 Bad Gateway timeouts while CORS is 100% authorized
     if (hostname.endsWith('.vercel.app')) {
-      return (envUrl && envUrl.startsWith('http')) ? envUrl.trim().replace(/\/+$/, '') : 'https://admin-09w3.onrender.com/admin-api';
+      return (envUrl && envUrl.startsWith('http') && !envUrl.includes('api.ficapp.in')) ? envUrl.trim().replace(/\/+$/, '') : 'https://admin-09w3.onrender.com/admin-api';
     }
   }
   if (!envUrl && typeof process !== 'undefined' && process.env) {
     envUrl = process.env.VITE_API_URL || process.env.ADMIN_API_URL || process.env.VITE_ADMIN_API_URL || process.env.VITE_API_BASE || '';
   }
-  if (!envUrl) envUrl = 'https://admin-09w3.onrender.com/admin-api';
+  if (!envUrl || envUrl.includes('api.ficapp.in') || envUrl.includes('3.110.88.42')) {
+    envUrl = 'https://admin-09w3.onrender.com/admin-api';
+  }
   envUrl = envUrl.trim().replace(/\/+$/, '');
 
   const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
   if (isHttps) {
-    if (envUrl.startsWith('http://3.110.88.42') || envUrl.startsWith('http://api.ficapp.in') || envUrl.startsWith('http://admin-09w3.onrender.com')) {
+    if (envUrl.includes('3.110.88.42') || envUrl.includes('api.ficapp.in') || envUrl.startsWith('http://admin-09w3.onrender.com')) {
       return 'https://admin-09w3.onrender.com/admin-api';
     }
     if (envUrl.startsWith('http://')) {
       return envUrl.replace(/^http:\/\//, 'https://');
     }
   }
-  if (envUrl.startsWith('http://3.110.88.42')) {
+  if (envUrl.includes('3.110.88.42') || envUrl.includes('api.ficapp.in')) {
     return 'https://admin-09w3.onrender.com/admin-api';
   }
   if (envUrl.endsWith('/api')) {
@@ -1519,8 +1521,8 @@ function App() {
       };
       
       let targetUrl = url;
-      if (url.startsWith('http://3.110.88.42:8004') || url.startsWith('http://3.110.88.42')) {
-        targetUrl = url.replace(/http:\/\/3\.110\.88\.42(:8004)?/, API_BASE);
+      if (url.includes('api.ficapp.in') || url.includes('3.110.88.42')) {
+        targetUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
       } else if (url.startsWith('/admin-api/')) {
         targetUrl = `${API_BASE.replace(/\/admin-api$/, '')}${url}`;
       } else if (url.startsWith('/api/')) {
@@ -1530,7 +1532,7 @@ function App() {
       } else if (!url.startsWith('http')) {
         targetUrl = `${API_BASE}/${url}`;
       }
-      targetUrl = targetUrl.replace('https://api.ficapp.in/api/', 'https://api.ficapp.in/admin-api/').replace('https://admin-09w3.onrender.com/api/', 'https://admin-09w3.onrender.com/admin-api/');
+      targetUrl = targetUrl.replace(/https?:\/\/api\.ficapp\.in\/(admin-api|api)\//g, 'https://admin-09w3.onrender.com/admin-api/').replace('https://admin-09w3.onrender.com/api/', 'https://admin-09w3.onrender.com/admin-api/');
       targetUrl = targetUrl.replace(/([^:])\/\//g, '$1/');
       targetUrl = targetUrl.replace(/\/admin-api\/admin-api\//g, '/admin-api/');
 
@@ -1986,14 +1988,18 @@ function App() {
     setLoading(true);
     setAuthError('');
     try {
+      const directRenderTarget = 'https://admin-09w3.onrender.com/admin-api/auth/login';
       const targets = [
         `${API_BASE}/auth/login`,
+        directRenderTarget,
+        'https://admin-09w3.onrender.com/api/auth/login',
         '/admin-api/auth/login',
-        '/api/auth/login',
-        'http://localhost:8004/admin-api/auth/login',
-        'http://localhost:8004/api/auth/login'
-      ].filter(Boolean);
-      const uniqueTargets = [...new Set(targets)];
+        '/api/auth/login'
+      ];
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        targets.push('http://localhost:8004/admin-api/auth/login', 'http://localhost:8004/api/auth/login');
+      }
+      const uniqueTargets = [...new Set(targets.filter(Boolean))].filter(u => !u.includes('api.ficapp.in'));
 
       let res = null;
       let lastError = null;
