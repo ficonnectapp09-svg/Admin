@@ -528,6 +528,15 @@ app.use('/admin-api/admin/enterprise', require('./routes/enterpriseModules'));
 app.use('/admin/enterprise', require('./routes/enterpriseModules'));
 app.use('/enterprise', require('./routes/enterpriseModules'));
 
+// Centralized Super Admin Support Team Management Suite
+app.use([
+    '/api/admin/support-team',
+    '/admin-api/admin/support-team',
+    '/admin-api/support-team',
+    '/admin/support-team',
+    '/support-team'
+], require('./routes/supportTeamAdminRoutes'));
+
 // Direct Territory Entity Aliases (Districts, Divisions, States, Pincodes)
 ['/api/admin/districts', '/admin-api/admin/districts', '/admin-api/districts', '/admin/districts', '/districts', '/api/districts'].forEach(p => {
     app.use(p, (req, res, next) => { req.url = '/districts' + (req.url === '/' ? '' : req.url); require('./routes/territory')(req, res, next); });

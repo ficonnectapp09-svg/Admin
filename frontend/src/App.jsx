@@ -6,7 +6,7 @@ import {
   Search, Filter, ChevronRight, Download, CreditCard, Clock,
   ArrowUpRight, ArrowDownRight, UserX, AlertTriangle, Eye, EyeOff, UploadCloud, Bell, User,
   Briefcase, Truck, Headphones, Folder, HelpCircle, MessageSquare, Megaphone, ShoppingBag, Calendar, Contact,
-  MoreVertical, RotateCcw, LayoutGrid, List, Smartphone, Laptop, Tv, Home, Shirt, Sparkles, Package, Utensils, Tag, Activity, ArrowRight, ChevronLeft, Lock, Store, Shield, ShieldCheck, Ban, RefreshCw, CheckSquare
+  MoreVertical, RotateCcw, LayoutGrid, List, Smartphone, Laptop, Tv, Home, Shirt, Sparkles, Package, Utensils, Tag, Activity, ArrowRight, ChevronLeft, Lock, Store, Shield, ShieldCheck, Ban, RefreshCw, CheckSquare, ChevronDown
 } from 'lucide-react';
 
 // Resilient lazy loader that auto-retries and self-heals after new deployments
@@ -60,6 +60,7 @@ const EnterprisePaymentDashboard = lazyWithRetry(() => import('./components/Ente
 const PaymentHistoryModule = lazyWithRetry(() => import('./components/PaymentHistoryModule'), 'PaymentHistoryModule');
 const PayrollManagement = lazyWithRetry(() => import('./components/PayrollManagement'), 'PayrollManagement');
 const CustomerSupportTeamManagement = lazyWithRetry(() => import('./components/CustomerSupportTeamManagement'), 'CustomerSupportTeamManagement');
+const SupportTeamMasterModule = lazyWithRetry(() => import('./components/supportTeam/SupportTeamMasterModule'), 'SupportTeamMasterModule');
 const AgentDirectoryModule = lazyWithRetry(() => import('./components/AgentDirectoryModule'), 'AgentDirectoryModule');
 const AgentPaymentModule = lazyWithRetry(() => import('./components/AgentPaymentModule'), 'AgentPaymentModule');
 const PincodeTerritoryManagement = lazyWithRetry(() => import('./components/PincodeTerritoryManagement'), 'PincodeTerritoryManagement');
@@ -579,6 +580,16 @@ const TAB_PATH_MAP = {
   'payment-history': '/payment-history',
   'kyc': '/kyc',
   'support-team-enterprise': '/support-team-enterprise',
+  'support-overview': '/support-overview',
+  'support-staff-management': '/support-staff-management',
+  'support-dept-management': '/support-dept-management',
+  'support-kyc-team': '/support-kyc-team',
+  'support-payment-team': '/support-payment-team',
+  'support-queries-team': '/support-queries-team',
+  'support-activities-monitoring': '/support-activities-monitoring',
+  'support-attendance': '/support-attendance',
+  'support-staff-performance': '/support-staff-performance',
+  'support-reports': '/support-reports',
   'reports': '/reports',
   'bookings': '/bookings',
   'jobs': '/jobs',
@@ -646,6 +657,16 @@ const ROUTE_TAB_MAP = {
   '/kyc-verification': 'kyc',
   '/support-team': 'support-team-enterprise',
   '/support-team-enterprise': 'support-team-enterprise',
+  '/support-overview': 'support-overview',
+  '/support-staff-management': 'support-staff-management',
+  '/support-dept-management': 'support-dept-management',
+  '/support-kyc-team': 'support-kyc-team',
+  '/support-payment-team': 'support-payment-team',
+  '/support-queries-team': 'support-queries-team',
+  '/support-activities-monitoring': 'support-activities-monitoring',
+  '/support-attendance': 'support-attendance',
+  '/support-staff-performance': 'support-staff-performance',
+  '/support-reports': 'support-reports',
   '/reports': 'reports',
   '/business-reports': 'reports',
   '/bookings': 'bookings',
@@ -905,6 +926,10 @@ function App() {
   });
   const [agentLevelFilter, setAgentLevelFilter] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : false);
+  const [isSupportTeamOpen, setIsSupportTeamOpen] = useState(() => {
+    const route = parseCurrentRoute();
+    return Boolean(route.tab?.startsWith('support-') && route.tab !== 'support-team-enterprise');
+  });
 
   const navigateTo = useCallback((tabKey, extraParams = {}, options = {}) => {
     const { replace = false } = options;
@@ -942,6 +967,9 @@ function App() {
   }, [isSuperAdmin]);
 
   const handleTabSelect = (tabKey) => {
+    if (tabKey.startsWith('support-') && tabKey !== 'support-team-enterprise') {
+      setIsSupportTeamOpen(true);
+    }
     navigateTo(tabKey);
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false);
@@ -2598,6 +2626,86 @@ function App() {
                 <BarChart3 className="w-4 h-4 text-violet-400" /> Manager Reports
               </button>
 
+              {/* ── SUPPORT TEAM (CENTRALIZED HIERARCHY) ── */}
+              <div className="pt-5 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setIsSupportTeamOpen(!isSupportTeamOpen)}
+                  className="w-full flex items-center justify-between px-4 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Headphones className="w-3.5 h-3.5 text-indigo-400" />
+                    Support Team
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSupportTeamOpen ? 'rotate-180 text-indigo-400' : 'text-slate-500'}`} />
+                </button>
+
+                {isSupportTeamOpen && (
+                  <div className="mt-1 space-y-0.5">
+                    <button
+                      onClick={() => handleTabSelect('support-overview')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-overview' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <LayoutGrid className="w-4 h-4 text-indigo-400" /> Support Overview
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-staff-management')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-staff-management' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Users className="w-4 h-4 text-blue-400" /> Staff Management
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-dept-management')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-dept-management' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Layers className="w-4 h-4 text-purple-400" /> Department Management
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-kyc-team')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-kyc-team' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <ShieldCheck className="w-4 h-4 text-blue-400" /> KYC Team
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-payment-team')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-payment-team' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <DollarSign className="w-4 h-4 text-emerald-400" /> Payment Team
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-queries-team')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-queries-team' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Headphones className="w-4 h-4 text-amber-400" /> Queries Team
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-activities-monitoring')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-activities-monitoring' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Activity className="w-4 h-4 text-rose-400" /> Activities & Monitoring
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-attendance')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-attendance' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Calendar className="w-4 h-4 text-teal-400" /> Attendance
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-staff-performance')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-staff-performance' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <Award className="w-4 h-4 text-yellow-400" /> Staff Performance
+                    </button>
+                    <button
+                      onClick={() => handleTabSelect('support-reports')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${activeTab === 'support-reports' ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                    >
+                      <FileText className="w-4 h-4 text-cyan-400" /> Daily / Monthly Reports
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* ── OPERATIONS ── */}
               <p className="px-4 pt-5 pb-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Operations</p>
               <button
@@ -2740,7 +2848,17 @@ function App() {
               </button>
               <div className="min-w-0">
                 <h2 className="text-base sm:text-xl font-extrabold capitalize text-slate-900 dark:text-white tracking-tight truncate">
-                  {activeTab === 'vendor-directory-enterprise' ? 'Vendor Directory - Enterprise' : activeTab === 'vendor-directory' ? 'Vendor Directory' : activeTab === 'agents' ? 'Agent Directory' : activeTab === 'agent-performance' ? 'Agent Performance Monitoring' : activeTab === 'agent-payment' ? 'Agent Payment' : (activeTab === 'pincodes' || activeTab === 'pincode-management') ? 'Pincode Management' : activeTab === 'admin-management' ? 'Admin Management' : activeTab === 'admin-tasks' ? 'Admin Tasks' : activeTab === 'admin-reports' ? 'Admin Reports' : activeTab === 'manager-directory' ? 'Managers' : activeTab === 'manager-reports' ? 'Manager Reports' : activeTab.replace(/-/g, ' ')}
+                  {activeTab === 'support-overview' ? 'Support Team Overview' :
+                   activeTab === 'support-staff-management' ? 'Support Staff Management & Hierarchy' :
+                   activeTab === 'support-dept-management' ? 'Support Department Management' :
+                   activeTab === 'support-kyc-team' ? 'KYC Operations Department' :
+                   activeTab === 'support-payment-team' ? 'Payment & Ledger Department' :
+                   activeTab === 'support-queries-team' ? 'Queries & Support Department' :
+                   activeTab === 'support-activities-monitoring' ? 'Support Activities & Audit Stream' :
+                   activeTab === 'support-attendance' ? 'Support Staff Attendance' :
+                   activeTab === 'support-staff-performance' ? 'Support Staff Performance' :
+                   activeTab === 'support-reports' ? 'Support Daily & Monthly Reports' :
+                   activeTab === 'vendor-directory-enterprise' ? 'Vendor Directory - Enterprise' : activeTab === 'vendor-directory' ? 'Vendor Directory' : activeTab === 'agents' ? 'Agent Directory' : activeTab === 'agent-performance' ? 'Agent Performance Monitoring' : activeTab === 'agent-payment' ? 'Agent Payment' : (activeTab === 'pincodes' || activeTab === 'pincode-management') ? 'Pincode Management' : activeTab === 'admin-management' ? 'Admin Management' : activeTab === 'admin-tasks' ? 'Admin Tasks' : activeTab === 'admin-reports' ? 'Admin Reports' : activeTab === 'manager-directory' ? 'Managers' : activeTab === 'manager-reports' ? 'Manager Reports' : activeTab.replace(/-/g, ' ')}
                 </h2>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5 hidden sm:block">
                   {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
@@ -3506,6 +3624,17 @@ function App() {
           {/* CUSTOMER SUPPORT TEAM HIERARCHY */}
           {activeTab === 'support-team-enterprise' && (
             <CustomerSupportTeamManagement token={token} API_BASE={API_BASE} />
+          )}
+
+          {/* CENTRALIZED SUPPORT TEAM MANAGEMENT */}
+          {activeTab.startsWith('support-') && activeTab !== 'support-team-enterprise' && (
+            <SupportTeamMasterModule
+              activeTab={activeTab}
+              setActiveTab={handleTabSelect}
+              API_BASE={API_BASE}
+              token={token}
+              onToast={addToast}
+            />
           )}
 
           {/* CYBER SECURITY & THREAT MONITORING DASHBOARD */}
