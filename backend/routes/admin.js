@@ -4500,6 +4500,8 @@ router.delete(['/banners/:id', '/banners/delete/:id'], [auth, adminAuth], async 
     try {
         const id = req.params.id;
         const deleted = await Banner.findByIdAndDelete(id) || await Banner.deleteOne({ _id: id });
+        const io = req.app.get('io');
+        if (io) io.emit('banners:updated', { action: 'delete', bannerId: id });
         res.json({ msg: 'Banner deleted', success: true });
     } catch (err) {
         console.error('Error deleting banner:', err);
@@ -4626,6 +4628,8 @@ router.post('/exclusive-offers', [auth, adminAuth], async (req, res) => {
             isActive: true
         });
         await offer.save();
+        const io = req.app.get('io');
+        if (io) io.emit('offers:updated', { action: 'create', offer });
         res.json(offer);
     } catch (err) {
         console.error('Error creating exclusive offer:', err);
@@ -4637,6 +4641,8 @@ router.post('/exclusive-offers', [auth, adminAuth], async (req, res) => {
 router.delete('/exclusive-offers/:id', [auth, adminAuth], async (req, res) => {
     try {
         await ExclusiveOffer.findByIdAndDelete(req.params.id);
+        const io = req.app.get('io');
+        if (io) io.emit('offers:updated', { action: 'delete', offerId: req.params.id });
         res.json({ msg: 'Exclusive offer deleted successfully' });
     } catch (err) {
         console.error('Error deleting exclusive offer:', err);
