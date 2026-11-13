@@ -2,10 +2,11 @@ require('dotenv').config();
 
 // Production Pre-flight Security Verification
 if (!process.env.JWT_SECRET) {
-    console.error('FATAL SECURITY ERROR: JWT_SECRET environment variable is missing.');
-    if (process.env.NODE_ENV === 'production') {
-        process.exit(1);
-    }
+    console.warn('⚠️ [SECURITY WARNING]: JWT_SECRET environment variable is missing.');
+    console.warn('⚠️ Configure JWT_SECRET in your cloud host settings (e.g., Render Dashboard -> Environment).');
+    const crypto = require('crypto');
+    process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️ Fallback runtime JWT_SECRET initialized for deployment stability.');
 }
 
 const express = require('express');

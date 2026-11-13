@@ -1,0 +1,36 @@
+name: Git Security & Secret Protection Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-audit:
+    name: Security & Push Protection Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Connect App Security Guard
+        run: |
+          node scripts/git-security-guard.js --ci
+
+      - name: Verify Prohibited Files Are Not Tracked
+        run: |
+          # Fails immediately if any sensitive file was committed into Git
+          if git ls-files | grep -E "(^\.env|\.env\.(production|local|development|staging|test)$|^(\.agents/)?(AGENT|AGENTS|CHANGELOG)\.md$|\.(pem|key|p12|dump|bson)$)"; then
+            echo "::error::CRITICAL SECURITY POLICY VIOLATION: Sensitive file tracked in Git."
+            exit 1
+          else
+            echo "All sensitive files are properly excluded from Git tracking."
+          fi

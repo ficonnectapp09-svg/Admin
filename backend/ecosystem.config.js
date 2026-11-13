@@ -20,7 +20,7 @@ module.exports = {
         SMTP_PORT: 587,
         SMTP_SECURE: 'true',
         SMTP_USER: 'ficonnectblr@gmail.com',
-        SMTP_PASS: 'kgfy ptpa lifh xrzz',
+        SMTP_PASS: process.env.SMTP_PASS || '',
         SMTP_FROM: '"Forge India Connect Security" <ficonnectblr@gmail.com>',
         OTP_EXPIRES_MINUTES: 5
       },
@@ -34,7 +34,7 @@ module.exports = {
         SMTP_PORT: 587,
         SMTP_SECURE: 'true',
         SMTP_USER: 'ficonnectblr@gmail.com',
-        SMTP_PASS: 'kgfy ptpa lifh xrzz',
+        SMTP_PASS: process.env.SMTP_PASS || '',
         SMTP_FROM: '"Forge India Connect Security" <ficonnectblr@gmail.com>',
         OTP_EXPIRES_MINUTES: 5
       }

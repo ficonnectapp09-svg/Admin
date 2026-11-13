@@ -6,8 +6,8 @@ const createTransporter = (overridePort = null) => {
   const port = overridePort || defaultPort;
   const secure = port === 465 ? true : (port === 587 ? false : (process.env.SMTP_SECURE === 'true'));
   const user = ((process.env.SMTP_USER && process.env.SMTP_USER.trim()) || 'ficonnectblr@gmail.com').trim();
-  const rawPass = ((process.env.SMTP_PASS && process.env.SMTP_PASS.trim()) || 'kgfy ptpa lifh xrzz').trim();
-  // Strip spaces from Gmail 16-character App Password (e.g. "kgfy ptpa lifh xrzz" -> "kgfyptpalifhxrzz")
+  const rawPass = (process.env.SMTP_PASS && process.env.SMTP_PASS.trim()) || '';
+  // Strip spaces from Gmail 16-character App Password (e.g. app password with spaces)
   const pass = rawPass.replace(/\s+/g, '');
 
   return nodemailer.createTransport({

@@ -4,6 +4,7 @@
   "description": "Root package runner for Connect App Admin Portal",
   "scripts": {
     "build": "npm run build --prefix frontend",
+    "security:check": "node scripts/git-security-guard.js --scan",
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
