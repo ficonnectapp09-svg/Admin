@@ -183,10 +183,11 @@ window.addEventListener('error', (event) => {
 });
 
 // Universal API Base URL Auto-Healing Interceptor:
-// 1. If Nginx reverse proxy strips the /admin-api prefix causing a 404 Route Not Found,
-//    transparently retry with /admin-api/admin-api/ on 404.
-// 2. If Vercel rewrite proxy encounters 502/503/504 Bad Gateway,
-//    transparently retry directly against the authoritative backend https://api.ficapp.in/admin-api.
+// 1. Direct routing to authoritative Render backend:
+//    Redirect any relative (/admin-api/, /api/), proxy-hosted (.vercel.app),
+//    or legacy (api.ficapp.in, 3.110.88.42) API calls directly to https://admin-09w3.onrender.com/admin-api.
+//    This eliminates Vercel edge proxy 502/500 timeouts caused by Cloudflare Host header mismatches.
+// 2. Transparent auto-recovery on 500, 502, 503, 504 and network errors.
 if (typeof window !== 'undefined' && window.fetch) {
   const _origFetch = window.fetch;
   window.fetch = async function (input, init) {
@@ -201,22 +202,41 @@ if (typeof window !== 'undefined' && window.fetch) {
 
     let primaryInput = input;
 
-    // Automatically redirect any dead api.ficapp.in or 3.110.88.42 requests to authoritative Render backend
-    if (typeof url === 'string' && (url.includes('api.ficapp.in') || url.includes('3.110.88.42'))) {
-      const redirectedUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
-      if (typeof input === 'string') {
-        primaryInput = redirectedUrl;
-      } else if (input instanceof URL) {
-        primaryInput = new URL(redirectedUrl);
-      } else if (typeof Request !== 'undefined' && input instanceof Request) {
-        primaryInput = new Request(redirectedUrl, input);
+    // 1. Direct routing to authoritative Render backend
+    let targetDirectUrl = null;
+    if (typeof url === 'string') {
+      if (url.includes('api.ficapp.in') || url.includes('3.110.88.42')) {
+        targetDirectUrl = url.replace(/https?:\/\/(api\.ficapp\.in|3\.110\.88\.42(:8004)?)\/(admin-api|api)?/, 'https://admin-09w3.onrender.com/admin-api');
+      } else if (url.includes('.vercel.app/admin-api/')) {
+        targetDirectUrl = url.replace(/https?:\/\/[^\/]+\/admin-api\//, 'https://admin-09w3.onrender.com/admin-api/');
+      } else if (url.includes('.vercel.app/api/')) {
+        targetDirectUrl = url.replace(/https?:\/\/[^\/]+\/api\//, 'https://admin-09w3.onrender.com/admin-api/');
+      } else if (url.startsWith('/admin-api/')) {
+        targetDirectUrl = `https://admin-09w3.onrender.com${url}`;
+      } else if (url.startsWith('/api/')) {
+        targetDirectUrl = `https://admin-09w3.onrender.com/admin-api/${url.slice(5)}`;
       }
-      url = redirectedUrl;
     }
 
-    // Clean redundant duplicate /admin-api/admin-api/ if present
+    if (targetDirectUrl) {
+      // Clean duplicate /admin-api/admin-api/ or /admin-api/api/
+      targetDirectUrl = targetDirectUrl
+        .replace(/\/admin-api\/admin-api\//g, '/admin-api/')
+        .replace(/\/admin-api\/api\//g, '/admin-api/');
+
+      if (typeof input === 'string') {
+        primaryInput = targetDirectUrl;
+      } else if (input instanceof URL) {
+        primaryInput = new URL(targetDirectUrl);
+      } else if (typeof Request !== 'undefined' && input instanceof Request) {
+        primaryInput = new Request(targetDirectUrl, input);
+      }
+      url = targetDirectUrl;
+    }
+
+    // Clean redundant duplicate /admin-api/admin-api/ if present in input
     if (typeof url === 'string' && url.includes('/admin-api/admin-api/')) {
-      const cleanedUrl = url.replace('/admin-api/admin-api/', '/admin-api/');
+      const cleanedUrl = url.replace(/\/admin-api\/admin-api\//g, '/admin-api/');
       if (typeof input === 'string') {
         primaryInput = cleanedUrl;
       } else if (input instanceof URL) {
@@ -224,6 +244,7 @@ if (typeof window !== 'undefined' && window.fetch) {
       } else if (typeof Request !== 'undefined' && input instanceof Request) {
         primaryInput = new Request(cleanedUrl, input);
       }
+      url = cleanedUrl;
     }
 
     try {
@@ -236,21 +257,21 @@ if (typeof window !== 'undefined' && window.fetch) {
         }
       }
 
-      // 502/503/504 Bad Gateway Auto-Recovery:
-      // If Vercel edge rewrite proxy returns 502 Bad Gateway or Gateway Timeout,
-      // transparently failover directly to authoritative Render backend https://admin-09w3.onrender.com
-      if (response && (response.status === 502 || response.status === 503 || response.status === 504) && typeof url === 'string') {
-        if (url.startsWith('/admin-api/') || url.startsWith('/api/') || url.includes('.vercel.app/')) {
+      // 500/502/503/504 Bad Gateway & Server Error Auto-Recovery:
+      // Transparently failover directly to authoritative Render backend https://admin-09w3.onrender.com
+      if (response && (response.status >= 500 && response.status <= 504) && typeof url === 'string') {
+        const directTarget = url.includes('/admin-api/')
+          ? `https://admin-09w3.onrender.com/admin-api/${url.split('/admin-api/')[1]}`
+          : (url.includes('/api/') ? `https://admin-09w3.onrender.com/admin-api/${url.split('/api/')[1]}` : null);
+
+        if (directTarget && directTarget !== url) {
           try {
-            const directTarget = url.includes('/admin-api/')
-              ? `https://admin-09w3.onrender.com/admin-api/${url.split('/admin-api/')[1]}`
-              : `https://admin-09w3.onrender.com/api/${url.split('/api/')[1]}`;
             let directInput = directTarget;
             if (typeof Request !== 'undefined' && input instanceof Request) {
               directInput = new Request(directTarget, input);
             }
             const directRes = await _origFetch.call(this, directInput, init);
-            if (directRes && directRes.status !== 502 && directRes.status !== 503 && directRes.status !== 504) {
+            if (directRes && directRes.status < 500) {
               return directRes;
             }
           } catch (_) {}
@@ -259,7 +280,7 @@ if (typeof window !== 'undefined' && window.fetch) {
           try {
             await new Promise(r => setTimeout(r, 750 * (rAttempt + 1)));
             const retryResponse = await _origFetch.call(this, primaryInput, init);
-            if (retryResponse && retryResponse.status !== 502 && retryResponse.status !== 503 && retryResponse.status !== 504) {
+            if (retryResponse && retryResponse.status < 500) {
               return retryResponse;
             }
           } catch (_) {}
@@ -289,11 +310,11 @@ if (typeof window !== 'undefined' && window.fetch) {
       return response;
     } catch (err) {
       // In case of network timeout or proxy drop on Vercel edge, transparently failover to direct backend
-      if (typeof url === 'string' && (url.includes('.vercel.app/admin-api/') || url.startsWith('/admin-api/'))) {
+      if (typeof url === 'string' && (url.includes('.vercel.app/') || url.startsWith('/') || url.includes('ficapp.in'))) {
         try {
-          const directUrl = url.includes('.vercel.app/admin-api/')
-            ? url.replace(/https?:\/\/[^\/]+\/admin-api\//, 'https://admin-09w3.onrender.com/admin-api/')
-            : `https://admin-09w3.onrender.com${url}`;
+          const directUrl = url.includes('/admin-api/')
+            ? `https://admin-09w3.onrender.com/admin-api/${url.split('/admin-api/')[1]}`
+            : (url.includes('/api/') ? `https://admin-09w3.onrender.com/admin-api/${url.split('/api/')[1]}` : `https://admin-09w3.onrender.com${url}`);
           let directInput = directUrl;
           if (typeof Request !== 'undefined' && input instanceof Request) {
             directInput = new Request(directUrl, input);

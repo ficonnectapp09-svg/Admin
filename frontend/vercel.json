@@ -22,14 +22,6 @@
   ],
   "rewrites": [
     {
-      "source": "/admin-api/:path*",
-      "destination": "https://admin-09w3.onrender.com/admin-api/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://admin-09w3.onrender.com/api/:path*"
-    },
-    {
       "source": "/((?!assets/|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }

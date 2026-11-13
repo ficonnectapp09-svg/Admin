@@ -543,6 +543,8 @@ app.use('/api/admin/territory', require('./routes/territory'));
 app.use('/api/territory', require('./routes/territory'));
 app.use('/admin-api/territory', require('./routes/territory'));
 app.use('/admin-api/admin/territory', require('./routes/territory'));
+app.use('/admin-api/api/territory', require('./routes/territory'));
+app.use('/admin/api/territory', require('./routes/territory'));
 app.use('/admin/territory', require('./routes/territory'));
 app.use('/territory', require('./routes/territory'));
 app.use('/territories', require('./routes/territory'));
@@ -836,6 +838,11 @@ app.use((req, res, next) => {
 // Global Express Error Handler
 app.use((err, req, res, next) => {
     console.error('Server Error:', err);
+    const origin = req.headers.origin;
+    if (origin && isOriginAllowed(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     res.status(err.status || 500).json({ status: 'error', message: err.message || 'Internal Server Error' });
 });
 

@@ -62,7 +62,15 @@ export const TerritoryFilterBar = ({
   const [loadingPincodes, setLoadingPincodes] = useState(false);
 
   // Derive API BASE URL
-  const apiBase = propApiBase || (typeof window !== 'undefined' ? (window.__API_BASE__ || '') : '');
+  const resolveBase = () => {
+    let b = propApiBase || (typeof window !== 'undefined' ? (window.__API_BASE__ || '') : '');
+    if (!b || b.includes('api.ficapp.in') || b.includes('3.110.88.42')) {
+      b = 'https://admin-09w3.onrender.com/admin-api';
+    }
+    return b.trim().replace(/\/+$/, '');
+  };
+  const apiBase = resolveBase();
+  const territoryBase = apiBase.endsWith('/admin-api') ? `${apiBase}/territory` : `${apiBase}/api/territory`;
 
   // 1. Fetch States on Mount (cached)
   useEffect(() => {
@@ -75,7 +83,7 @@ export const TerritoryFilterBar = ({
     const fetchStates = async () => {
       setLoadingStates(true);
       try {
-        const res = await fetch(`${apiBase}/api/territory/states?status=Active`);
+        const res = await fetch(`${territoryBase}/states?status=Active`);
         if (res.ok) {
           const data = await res.json();
           const stateNames = (Array.isArray(data) ? data : (data.states || []))
@@ -117,7 +125,7 @@ export const TerritoryFilterBar = ({
     const fetchDistricts = async () => {
       setLoadingDistricts(true);
       try {
-        const res = await fetch(`${apiBase}/api/territory/districts?state=${encodeURIComponent(selectedState)}&status=Active`);
+        const res = await fetch(`${territoryBase}/districts?state=${encodeURIComponent(selectedState)}&status=Active`);
         if (res.ok) {
           const data = await res.json();
           const distNames = (Array.isArray(data) ? data : (data.districts || []))
@@ -139,7 +147,7 @@ export const TerritoryFilterBar = ({
 
     fetchDistricts();
     return () => { isMounted = false; };
-  }, [selectedState, apiBase]);
+  }, [selectedState, territoryBase]);
 
   // 3. Fetch Divisions when District changes
   useEffect(() => {
@@ -159,7 +167,7 @@ export const TerritoryFilterBar = ({
     const fetchDivisions = async () => {
       setLoadingDivisions(true);
       try {
-        const res = await fetch(`${apiBase}/api/territory/divisions?state=${encodeURIComponent(selectedState)}&district=${encodeURIComponent(selectedDistrict)}&status=Active`);
+        const res = await fetch(`${territoryBase}/divisions?state=${encodeURIComponent(selectedState)}&district=${encodeURIComponent(selectedDistrict)}&status=Active`);
         if (res.ok) {
           const data = await res.json();
           const divNames = (Array.isArray(data) ? data : (data.divisions || []))
@@ -181,7 +189,7 @@ export const TerritoryFilterBar = ({
 
     fetchDivisions();
     return () => { isMounted = false; };
-  }, [selectedState, selectedDistrict, apiBase]);
+  }, [selectedState, selectedDistrict, territoryBase]);
 
   // 4. Fetch Pincodes when Division changes
   useEffect(() => {
@@ -200,7 +208,7 @@ export const TerritoryFilterBar = ({
     const fetchPincodes = async () => {
       setLoadingPincodes(true);
       try {
-        const res = await fetch(`${apiBase}/api/territory/pincodes?state=${encodeURIComponent(selectedState)}&district=${encodeURIComponent(selectedDistrict)}&division=${encodeURIComponent(selectedDivision)}&status=Active`);
+        const res = await fetch(`${territoryBase}/pincodes?state=${encodeURIComponent(selectedState)}&district=${encodeURIComponent(selectedDistrict)}&division=${encodeURIComponent(selectedDivision)}&status=Active`);
         if (res.ok) {
           const data = await res.json();
           const pinList = (Array.isArray(data) ? data : (data.pincodes || []))
@@ -222,7 +230,7 @@ export const TerritoryFilterBar = ({
 
     fetchPincodes();
     return () => { isMounted = false; };
-  }, [selectedState, selectedDistrict, selectedDivision, apiBase]);
+  }, [selectedState, selectedDistrict, selectedDivision, territoryBase]);
 
   // Handle Cascading Changes
   const handleStateSelect = (val) => {
