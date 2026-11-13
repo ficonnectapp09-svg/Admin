@@ -67,10 +67,10 @@ class DataSyncManager {
         base = `${window.location.origin}/admin-api`;
       }
     }
-    if (!base) base = 'https://api.ficapp.in/admin-api';
+    if (!base) base = 'https://admin-09w3.onrender.com/admin-api';
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    if (isHttps && (base.startsWith('http://3.110.88.42') || base.startsWith('http://api.ficapp.in') || base.startsWith('http://'))) {
-      base = 'https://api.ficapp.in/admin-api';
+    if (isHttps && (base.startsWith('http://3.110.88.42') || base.startsWith('http://api.ficapp.in') || base.startsWith('http://admin-09w3.onrender.com') || base.startsWith('http://'))) {
+      base = 'https://admin-09w3.onrender.com/admin-api';
     }
     if (base.endsWith('/api')) {
       base = base.replace(/\/api$/, '/admin-api');
@@ -132,8 +132,8 @@ class DataSyncManager {
           return data;
         }
 
-        if (res.status === 404 && fullUrl.includes('api.ficapp.in/admin-api/') && !fullUrl.includes('api.ficapp.in/admin-api/admin-api/')) {
-          const fallbackUrl = fullUrl.replace('api.ficapp.in/admin-api/', 'api.ficapp.in/admin-api/admin-api/');
+        if (res.status === 404 && (fullUrl.includes('admin-09w3.onrender.com/admin-api/') || fullUrl.includes('api.ficapp.in/admin-api/')) && !fullUrl.includes('/admin-api/admin-api/')) {
+          const fallbackUrl = fullUrl.replace('/admin-api/', '/admin-api/admin-api/');
           const fbController = new AbortController();
           const fbTimeoutId = setTimeout(() => fbController.abort(), 15000);
           try {

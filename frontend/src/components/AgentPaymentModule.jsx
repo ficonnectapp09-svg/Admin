@@ -76,10 +76,10 @@ export default function AgentPaymentModule({ token, API_BASE, initialAgents = []
       'Content-Type': 'application/json' 
     };
     
-    const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+    const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
     const urls = [
       `${baseClean}/admin/agents`,
-      'https://api.ficapp.in/admin-api/admin/agents'
+      'https://admin-09w3.onrender.com/admin-api/admin/agents'
     ];
 
     for (const url of urls) {

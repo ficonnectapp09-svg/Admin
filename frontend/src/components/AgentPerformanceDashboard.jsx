@@ -122,7 +122,7 @@ export const AgentPerformanceDashboard = React.memo(({ token, API_BASE }) => {
       if (isBypassCache) queryParams.append('refresh', 'true');
 
       const queryString = queryParams.toString();
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
       let targetUrl = `${baseClean}/admin/agent-performance/overview?${queryString}`;
       targetUrl = targetUrl.replace(/\/admin-api\/admin-api\//g, '/admin-api/');
       const authToken = token || (typeof localStorage !== 'undefined' ? localStorage.getItem('token') : '');
@@ -154,7 +154,7 @@ export const AgentPerformanceDashboard = React.memo(({ token, API_BASE }) => {
         if (res.status === 404) {
           const alternateUrl = targetUrl.includes('/admin-api/admin-api/')
             ? targetUrl.replace('/admin-api/admin-api/', '/admin-api/')
-            : targetUrl.replace('api.ficapp.in/admin-api/', 'api.ficapp.in/admin-api/admin-api/');
+            : targetUrl.replace('/admin-api/', '/admin-api/admin-api/');
           try {
             const altController = new AbortController();
             const altTimeout = setTimeout(() => altController.abort(), 30000);

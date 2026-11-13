@@ -130,7 +130,7 @@ export default function AgentDirectoryModule({
     const agId = agentObj._id || agentObj.id || agentObj.registrationId;
     if (!token || !agId) { setScorecardLoading(false); return; }
     const headers = { 'x-auth-token': token, 'Content-Type': 'application/json' };
-    const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '');
+    const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '');
     const candidateEndpoints = [
       `${baseClean}/admin/agents/${agId}/scorecard`,
       `${baseClean}/agents/${agId}/scorecard`,
@@ -186,12 +186,12 @@ export default function AgentDirectoryModule({
       'Authorization': `Bearer ${activeToken}`,
       'Content-Type': 'application/json'
     };
-    const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+    const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
     const candidates = [
       `${baseClean}/admin/agents`,
-      'https://api.ficapp.in/admin-api/admin/agents',
+      'https://admin-09w3.onrender.com/admin-api/admin/agents',
       `${baseClean}/agents`,
-      'https://api.ficapp.in/admin-api/agents',
+      'https://admin-09w3.onrender.com/admin-api/agents',
       `${baseClean.replace(/\/admin-api$/, '')}/admin-api/agents`,
       ...(typeof window !== 'undefined' && window.location.origin.includes('localhost') ? ['/admin-api/admin/agents', '/admin-api/agents'] : [])
     ];
@@ -344,7 +344,7 @@ export default function AgentDirectoryModule({
         rejectionReason: reason || `${action} by administrator`
       });
 
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '');
       const candidateUrls = [
         `${baseClean}/agents/${agent._id}/${actionName}`,
         `${baseClean}/admin/agents/${agent._id}/${actionName}`,
@@ -1444,8 +1444,8 @@ export default function AgentDirectoryModule({
                       )}
                     </div>
                     <div className="flex gap-2 shrink-0 flex-wrap">
-                      <button type="button" disabled={refreshing} onClick={async (e) => { const b = e.currentTarget; b.disabled = true; try { const h = { 'x-auth-token': token, 'Content-Type': 'application/json' }; const body = JSON.stringify({ status: 'rejected', agentId: pAgent._id, email: pAgent.email, phone: pAgent.phone, registrationId: pAgent.registrationId }); const bc = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api'); try { await fetch(`${bc}/admin/approve-agent/${pAgent._id}`, { method: 'PUT', headers: h, body }); } catch(e) {} loadAgentData(true); } catch(err) {} finally { b.disabled = false; } }} className="bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50">Reject</button>
-                      <button type="button" disabled={refreshing} onClick={async (e) => { const b = e.currentTarget; b.disabled = true; try { const h = { 'x-auth-token': token, 'Content-Type': 'application/json' }; const body = JSON.stringify({ status: 'approved', agentId: pAgent._id, email: pAgent.email, phone: pAgent.phone, registrationId: pAgent.registrationId }); const bc = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api'); try { await fetch(`${bc}/admin/approve-agent/${pAgent._id}`, { method: 'PUT', headers: h, body }); } catch(e) {} loadAgentData(true); } catch(err) {} finally { b.disabled = false; } }} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-md cursor-pointer disabled:opacity-50">Approve Agent</button>
+                      <button type="button" disabled={refreshing} onClick={async (e) => { const b = e.currentTarget; b.disabled = true; try { const h = { 'x-auth-token': token, 'Content-Type': 'application/json' }; const body = JSON.stringify({ status: 'rejected', agentId: pAgent._id, email: pAgent.email, phone: pAgent.phone, registrationId: pAgent.registrationId }); const bc = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api'); try { await fetch(`${bc}/admin/approve-agent/${pAgent._id}`, { method: 'PUT', headers: h, body }); } catch(e) {} loadAgentData(true); } catch(err) {} finally { b.disabled = false; } }} className="bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50">Reject</button>
+                      <button type="button" disabled={refreshing} onClick={async (e) => { const b = e.currentTarget; b.disabled = true; try { const h = { 'x-auth-token': token, 'Content-Type': 'application/json' }; const body = JSON.stringify({ status: 'approved', agentId: pAgent._id, email: pAgent.email, phone: pAgent.phone, registrationId: pAgent.registrationId }); const bc = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api'); try { await fetch(`${bc}/admin/approve-agent/${pAgent._id}`, { method: 'PUT', headers: h, body }); } catch(e) {} loadAgentData(true); } catch(err) {} finally { b.disabled = false; } }} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-md cursor-pointer disabled:opacity-50">Approve Agent</button>
                     </div>
                   </div>
                 );

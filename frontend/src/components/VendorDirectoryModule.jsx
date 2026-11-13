@@ -912,7 +912,7 @@ export const VendorDirectoryModule = React.memo(({
 
   const fetchDirectRequests = async () => {
     try {
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
       const url = `${baseClean}/admin/enterprise/vendors?isDirectRequest=true&limit=50`;
 
       try {
@@ -949,7 +949,7 @@ export const VendorDirectoryModule = React.memo(({
 
   const fetchAgentOnboardedVendors = async () => {
     try {
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
       const url = `${baseClean}/admin/enterprise/vendors?isAgentOnboarded=true&pendingOnly=true&limit=500`;
 
       try {
@@ -995,7 +995,7 @@ export const VendorDirectoryModule = React.memo(({
     setManagerVendorsLoading(true);
     setManagerVendorsError(null);
     try {
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
       const url = `${baseClean}/admin/enterprise/vendors?isManagerOnboarded=true&pendingOnly=true&limit=500`;
 
       try {
@@ -1051,7 +1051,7 @@ export const VendorDirectoryModule = React.memo(({
   const fetchVendorBusinessRequests = async () => {
     setBusinessRequestsLoading(true);
     try {
-      const baseClean = (API_BASE || 'https://api.ficapp.in/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
+      const baseClean = (API_BASE || 'https://admin-09w3.onrender.com/admin-api').trim().replace(/\/+$/, '').replace(/\/api$/, '/admin-api');
       const url = `${baseClean}/admin/vendors/business-requests`;
 
       try {

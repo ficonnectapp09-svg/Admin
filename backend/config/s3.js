@@ -169,7 +169,7 @@ function getDurableImageUrl(objectKey) {
     const cfBase = cloudfrontDomain.startsWith('http') ? cloudfrontDomain : `https://${cloudfrontDomain}`;
     return `${cfBase.replace(/\/+$/, '')}/${cleanKey}`;
   }
-  const backendBase = process.env.BACKEND_URL || 'https://admin-api.ficapp.in';
+  const backendBase = process.env.BACKEND_URL || 'https://admin-09w3.onrender.com';
   return `${backendBase.replace(/\/+$/, '')}/api/media/s3/${cleanKey}`;
 }
 

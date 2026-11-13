@@ -23,6 +23,7 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 const allowedOrigins = [
+    'https://admin-09w3.onrender.com',
     'https://connect-admin-roan.vercel.app',
     'https://connect-agent-one.vercel.app',
     'https://agent.ficapp.in',
@@ -59,6 +60,9 @@ const isOriginAllowed = (origin) => {
         return true;
     }
     if (/^https:\/\/[a-zA-Z0-9_.-]*vercel\.app$/.test(cleanOrigin)) {
+        return true;
+    }
+    if (/^https:\/\/[a-zA-Z0-9_.-]*onrender\.com$/.test(cleanOrigin)) {
         return true;
     }
     if (/^https:\/\/[a-zA-Z0-9_.-]*ficapp\.in$/.test(cleanOrigin)) {
@@ -143,7 +147,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
             imgSrc: ["'self'", "data:", "blob:", "https://*.amazonaws.com", "https://*.s3.amazonaws.com"],
-            connectSrc: ["'self'", "https://api.ficapp.in", "https://ficapp.in", "wss://api.ficapp.in", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"],
+            connectSrc: ["'self'", "https://admin-09w3.onrender.com", "wss://admin-09w3.onrender.com", "https://api.ficapp.in", "https://ficapp.in", "wss://api.ficapp.in", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"],
             frameAncestors: ["'none'"]
         }
     },

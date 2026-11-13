@@ -307,7 +307,7 @@ app.on('activate', () => {
 app.on('web-contents-created', (_, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new url.URL(navigationUrl);
-    const allowed = ['localhost', '127.0.0.1', 'api.ficapp.in'];
+    const allowed = ['localhost', '127.0.0.1', 'api.ficapp.in', 'admin-09w3.onrender.com'];
     if (!allowed.includes(parsedUrl.hostname)) {
       event.preventDefault();
     }

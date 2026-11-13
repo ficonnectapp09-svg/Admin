@@ -92,7 +92,7 @@ Place icon files in `electron/assets/`:
 
 - `contextIsolation: true` + `nodeIntegration: false` — renderer is isolated
 - External links open in OS browser
-- Navigation locked to localhost + api.ficapp.in
+- Navigation locked to localhost + api.ficapp.in + admin-09w3.onrender.com
 
 ---
 

@@ -201,8 +201,8 @@ if (typeof window !== 'undefined' && window.fetch) {
 
     // Clean redundant duplicate /admin-api/admin-api/ if present
     let primaryInput = input;
-    if (typeof url === 'string' && url.includes('api.ficapp.in/admin-api/admin-api/')) {
-      const cleanedUrl = url.replace('api.ficapp.in/admin-api/admin-api/', 'api.ficapp.in/admin-api/');
+    if (typeof url === 'string' && url.includes('/admin-api/admin-api/')) {
+      const cleanedUrl = url.replace('/admin-api/admin-api/', '/admin-api/');
       if (typeof input === 'string') {
         primaryInput = cleanedUrl;
       } else if (input instanceof URL) {
@@ -239,8 +239,8 @@ if (typeof window !== 'undefined' && window.fetch) {
       }
 
       if (response && response.status === 404 && typeof url === 'string') {
-        const fallbackUrl = url.includes('api.ficapp.in/admin-api/') && !url.includes('api.ficapp.in/admin-api/admin-api/')
-          ? url.replace('api.ficapp.in/admin-api/', 'api.ficapp.in/admin-api/admin-api/')
+        const fallbackUrl = (url.includes('admin-09w3.onrender.com/admin-api/') || url.includes('api.ficapp.in/admin-api/')) && !url.includes('/admin-api/admin-api/')
+          ? url.replace('/admin-api/', '/admin-api/admin-api/')
           : null;
 
         if (fallbackUrl && fallbackUrl !== url) {
@@ -260,12 +260,12 @@ if (typeof window !== 'undefined' && window.fetch) {
       }
       return response;
     } catch (err) {
-      // In case of network timeout or proxy drop on Vercel edge, transparently failover to api.ficapp.in directly
+      // In case of network timeout or proxy drop on Vercel edge, transparently failover to direct backend
       if (typeof url === 'string' && (url.includes('.vercel.app/admin-api/') || url.startsWith('/admin-api/'))) {
         try {
           const directUrl = url.includes('.vercel.app/admin-api/')
-            ? url.replace(/https?:\/\/[^\/]+\/admin-api\//, 'https://api.ficapp.in/admin-api/')
-            : `https://api.ficapp.in${url}`;
+            ? url.replace(/https?:\/\/[^\/]+\/admin-api\//, 'https://admin-09w3.onrender.com/admin-api/')
+            : `https://admin-09w3.onrender.com${url}`;
           let directInput = directUrl;
           if (typeof Request !== 'undefined' && input instanceof Request) {
             directInput = new Request(directUrl, input);

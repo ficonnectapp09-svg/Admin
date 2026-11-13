@@ -121,29 +121,29 @@ const resolveSanitizedApiBase = () => {
       }
       return `${window.location.origin}/admin-api`;
     }
-    // On Vercel deployments, connect directly to production backend https://api.ficapp.in/admin-api
+    // On Vercel deployments, connect directly to production backend https://admin-09w3.onrender.com/admin-api
     // This completely eliminates Vercel edge proxy 502 Bad Gateway timeouts while CORS is 100% authorized
     if (hostname.endsWith('.vercel.app')) {
-      return (envUrl && envUrl.startsWith('http')) ? envUrl.trim().replace(/\/+$/, '') : 'https://api.ficapp.in/admin-api';
+      return (envUrl && envUrl.startsWith('http')) ? envUrl.trim().replace(/\/+$/, '') : 'https://admin-09w3.onrender.com/admin-api';
     }
   }
   if (!envUrl && typeof process !== 'undefined' && process.env) {
     envUrl = process.env.VITE_API_URL || process.env.ADMIN_API_URL || process.env.VITE_ADMIN_API_URL || process.env.VITE_API_BASE || '';
   }
-  if (!envUrl) envUrl = 'https://api.ficapp.in/admin-api';
+  if (!envUrl) envUrl = 'https://admin-09w3.onrender.com/admin-api';
   envUrl = envUrl.trim().replace(/\/+$/, '');
 
   const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
   if (isHttps) {
-    if (envUrl.startsWith('http://3.110.88.42') || envUrl.startsWith('http://api.ficapp.in')) {
-      return 'https://api.ficapp.in/admin-api';
+    if (envUrl.startsWith('http://3.110.88.42') || envUrl.startsWith('http://api.ficapp.in') || envUrl.startsWith('http://admin-09w3.onrender.com')) {
+      return 'https://admin-09w3.onrender.com/admin-api';
     }
     if (envUrl.startsWith('http://')) {
       return envUrl.replace(/^http:\/\//, 'https://');
     }
   }
   if (envUrl.startsWith('http://3.110.88.42')) {
-    return 'https://api.ficapp.in/admin-api';
+    return 'https://admin-09w3.onrender.com/admin-api';
   }
   if (envUrl.endsWith('/api')) {
     return envUrl.replace(/\/api$/, '/admin-api');
@@ -1530,7 +1530,7 @@ function App() {
       } else if (!url.startsWith('http')) {
         targetUrl = `${API_BASE}/${url}`;
       }
-      targetUrl = targetUrl.replace('https://api.ficapp.in/api/', 'https://api.ficapp.in/admin-api/');
+      targetUrl = targetUrl.replace('https://api.ficapp.in/api/', 'https://api.ficapp.in/admin-api/').replace('https://admin-09w3.onrender.com/api/', 'https://admin-09w3.onrender.com/admin-api/');
       targetUrl = targetUrl.replace(/([^:])\/\//g, '$1/');
       targetUrl = targetUrl.replace(/\/admin-api\/admin-api\//g, '/admin-api/');
 
@@ -1564,7 +1564,7 @@ function App() {
           } else if (r.status >= 500 && attempt < retries) {
             // If Vercel edge proxy returned 502/503/504 Bad Gateway, try direct connection to production backend
             if ((r.status === 502 || r.status === 503 || r.status === 504) && targetUrl.includes('.vercel.app/admin-api/')) {
-              const directFallbackUrl = targetUrl.replace(/https:\/\/[^/]+\/admin-api\//, 'https://api.ficapp.in/admin-api/');
+              const directFallbackUrl = targetUrl.replace(/https:\/\/[^/]+\/admin-api\//, 'https://admin-09w3.onrender.com/admin-api/');
               try {
                 const fbController = new AbortController();
                 const fbTimeout = setTimeout(() => fbController.abort(), 12000);
@@ -1584,10 +1584,10 @@ function App() {
             continue;
           }
 
-          if (r.status === 404 && targetUrl.includes('api.ficapp.in/admin-api/')) {
-            const fallbackUrl = targetUrl.includes('api.ficapp.in/admin-api/admin-api/')
-              ? targetUrl.replace('api.ficapp.in/admin-api/admin-api/', 'api.ficapp.in/admin-api/')
-              : targetUrl.replace('api.ficapp.in/admin-api/', 'api.ficapp.in/admin-api/admin-api/');
+          if (r.status === 404 && (targetUrl.includes('admin-09w3.onrender.com/admin-api/') || targetUrl.includes('api.ficapp.in/admin-api/'))) {
+            const fallbackUrl = targetUrl.includes('/admin-api/admin-api/')
+              ? targetUrl.replace('/admin-api/admin-api/', '/admin-api/')
+              : targetUrl.replace('/admin-api/', '/admin-api/admin-api/');
             const fbController = new AbortController();
             const fbTimeoutId = setTimeout(() => fbController.abort(), 15000);
             try {
