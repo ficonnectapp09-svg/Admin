@@ -34,3 +34,4 @@ jobs:
           else
             echo "All sensitive files are properly excluded from Git tracking."
           fi
+

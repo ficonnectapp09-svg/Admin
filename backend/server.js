@@ -146,8 +146,8 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-            imgSrc: ["'self'", "data:", "blob:", "https://*.amazonaws.com", "https://*.s3.amazonaws.com"],
-            connectSrc: ["'self'", "https://admin-09w3.onrender.com", "wss://admin-09w3.onrender.com", "https://api.ficapp.in", "https://ficapp.in", "wss://api.ficapp.in", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"],
+            imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.amazonaws.com", "https://*.s3.amazonaws.com"],
+            connectSrc: ["'self'", "https://res.cloudinary.com", "https://admin-09w3.onrender.com", "wss://admin-09w3.onrender.com", "https://api.ficapp.in", "https://ficapp.in", "wss://api.ficapp.in", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"],
             frameAncestors: ["'none'"]
         }
     },
@@ -227,77 +227,34 @@ const serveUploads = (req, res, next) => {
 app.use(['/uploads', '/admin-api/uploads', '/admin/uploads'], serveUploads);
 
 // ============================================================
-// AWS S3 MEDIA STREAMING & REUSABLE UPLOAD ENDPOINTS
+// CLOUDINARY & MEDIA STORAGE ENDPOINTS
 // ============================================================
-const { uploadToS3, getObjectStream, extractS3Key, getPresignedUrl } = require('./config/s3');
-let s3MemoryUpload;
+const { uploadToCloudinary } = require('./config/cloudinary');
+const { uploadToS3, getPresignedUrl } = require('./config/s3');
+let mediaMemoryUpload;
 try {
     const multer = require('multer');
-    s3MemoryUpload = multer({
+    mediaMemoryUpload = multer({
         storage: multer.memoryStorage(),
         limits: { fileSize: 25 * 1024 * 1024 }
     });
 } catch (mErr) {
     console.warn('[Admin Server] Optional multer module not found, using memory fallback:', mErr.message);
-    s3MemoryUpload = {
+    mediaMemoryUpload = {
         single: () => (req, res, next) => next()
     };
 }
 
-// S3 Media Viewing & Streaming Proxy Endpoint
-app.get(['/api/media/s3/{*key}', '/admin-api/media/s3/{*key}', '/admin/media/s3/{*key}'], async (req, res) => {
-    try {
-        const rawKey = Array.isArray(req.params.key) ? req.params.key.join('/') : (req.params.key || req.params[0] || '');
-        const cleanKey = decodeURIComponent(rawKey).replace(/^\/+/, '');
-
-        if (!cleanKey || cleanKey.includes('..') || !/^[a-zA-Z0-9_\-\/.]+\.(jpg|jpeg|png|webp|gif|avif|pdf|svg|webm|mp3|wav|m4a|ogg|aac|doc|docx|xls|xlsx|csv|txt)$/i.test(cleanKey)) {
-            return res.status(400).json({ error: 'Invalid or disallowed media key.' });
-        }
-
-        const isSensitiveDocument = /^(kyc|aadhaar|pan|admin_docs|subadmin_docs|resumes|passbooks)\//i.test(cleanKey);
-        if (isSensitiveDocument) {
-            const authHeader = req.headers['authorization'] || req.headers['x-auth-token'];
-            const token = typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (authHeader || req.query.token);
-            if (!token) {
-                return res.status(401).json({ error: 'Authentication required to access private document.' });
-            }
-            try {
-                const jwt = require('jsonwebtoken');
-                jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret-key-change-in-production');
-            } catch (authErr) {
-                return res.status(403).json({ error: 'Invalid or expired authentication token.' });
-            }
-        }
-
-        const streamRes = await getObjectStream(cleanKey);
-        if (!streamRes.success || !streamRes.body) {
-            return res.status(404).json({ error: streamRes.error || 'Media object not found in S3.' });
-        }
-
-        if (streamRes.etag) {
-            res.setHeader('ETag', streamRes.etag);
-            if (req.headers['if-none-match'] === streamRes.etag) {
-                return res.status(304).end();
-            }
-        }
-
-        res.setHeader('Content-Type', streamRes.contentType || 'application/octet-stream');
-        if (streamRes.contentLength) {
-            res.setHeader('Content-Length', streamRes.contentLength);
-        }
-        res.setHeader('Cache-Control', isSensitiveDocument ? 'private, no-cache, no-store, must-revalidate' : 'public, max-age=86400, stale-while-revalidate=604800');
-        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-
-        streamRes.body.pipe(res);
-    } catch (err) {
-        console.error('[Admin S3 Media Proxy Error]:', err.message);
-        res.status(500).json({ error: 'Failed to stream media from AWS S3.' });
-    }
+// Backward-compatible media endpoint for legacy media links (AWS S3 replaced by Cloudinary)
+app.get(['/api/media/s3/{*key}', '/admin-api/media/s3/{*key}', '/admin/media/s3/{*key}'], (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(fallbackDocSvg);
 });
 
-// Reusable S3 Upload Endpoint for Admin (supports both multipart and JSON base64)
+// Centralized Cloudinary Upload Endpoint for Admin (supports both multipart and JSON base64)
 app.post(['/api/upload', '/admin/upload', '/api/admin/upload'], (req, res, next) => {
-    s3MemoryUpload.single('file')(req, res, (err) => {
+    mediaMemoryUpload.single('file')(req, res, (err) => {
         if (err) {
             return res.status(400).json({ success: false, error: err.message || 'File upload validation error' });
         }
@@ -321,19 +278,24 @@ app.post(['/api/upload', '/admin/upload', '/api/admin/upload'], (req, res, next)
             return res.status(400).json({ success: false, error: 'No file or image payload provided for upload.' });
         }
 
-        const uploadRes = await uploadToS3(filePayload, folder, filenameHint);
+        const uploadRes = await uploadToCloudinary(filePayload, folder, filenameHint, {
+            documentType: req.body?.documentType || 'general',
+            applicantId: req.body?.applicantId || '',
+            kycRequestId: req.body?.kycRequestId || ''
+        });
+
         return res.json({
             success: true,
             url: uploadRes.secure_url || uploadRes.url,
             secure_url: uploadRes.secure_url || uploadRes.url,
-            key: uploadRes.key,
-            publicId: uploadRes.key,
+            key: uploadRes.publicId,
+            publicId: uploadRes.publicId,
             category: uploadRes.category,
             mimeType: uploadRes.mimeType
         });
     } catch (err) {
         console.error('[Admin Upload Route Error]:', err.message);
-        return res.status(500).json({ success: false, error: err.message || 'Failed to upload to S3.' });
+        return res.status(500).json({ success: false, error: err.message || 'Failed to upload to Cloudinary.' });
     }
 });
 
